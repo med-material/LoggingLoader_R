@@ -21,6 +21,11 @@ LoadFromDirectory <- function(dir, event = "Event", sample = "Sample", meta = "M
   #main game event data
   #exclude <- list.files(path = dir, pattern = "^[^~]")
   
+  df_event = data.frame()
+  df_sample = data.frame()
+  df_meta = data.frame()
+  
+  if (!is.null(event)){
   df_event <- list.files(recursive=TRUE ,path = dir,
                       pattern = paste0(event,"\\.csv$"),
                       full.names = T) %>% 
@@ -28,7 +33,8 @@ LoadFromDirectory <- function(dir, event = "Event", sample = "Sample", meta = "M
     mutate(file_contents = map(filename,~ read_delim(file.path(.), delim = sep, na = "NULL", col_types = cols(.default = "c"))))  %>% 
     unnest(cols=-filename) %>%
     mutate(file_contents = NULL)
-
+  }
+  if (!is.null(sample)){
   #sample data
   df_sample <- list.files(recursive=TRUE ,path = dir,
                             pattern = paste0(sample,"\\.csv$"), 
@@ -37,7 +43,8 @@ LoadFromDirectory <- function(dir, event = "Event", sample = "Sample", meta = "M
     mutate(file_contents = map(filename,~ read_delim(file.path(.), delim = sep, na = "NULL", col_types = cols(.default = "c"))))  %>% 
     unnest(cols=-filename) %>%
     mutate(file_contents = NULL)
-  
+  }
+  if(!is.null(meta)){
   #meta data
   df_meta <- list.files(recursive=TRUE ,path = dir,
                              pattern = paste0(meta,"\\.csv$"), 
@@ -50,6 +57,18 @@ LoadFromDirectory <- function(dir, event = "Event", sample = "Sample", meta = "M
     mutate(file_contents = NULL)
   
   df_meta <- PreprocessMeta(df_meta)
+  } else{
+    
+    df_meta <- list.files(recursive=TRUE ,path = dir,
+                          pattern = meta, 
+                          full.names = T) %>% 
+      tibble(filename = .) %>%   
+      unnest(cols=-filename) %>% 
+      separate(col=filename,sep="_",into=c("i5","i6","i7","i8","i9"), remove=F) %>% 
+      separate(col=filename,sep="/",into=c("i0","i1","i2","i3","i4"), remove=F) %>% 
+      add_column(SessionID= NA)
+    
+  }
   dataset <- MergeDatasets(df_meta, df_event, df_sample)
   
   return(dataset)
@@ -70,6 +89,12 @@ PreprocessMeta <- function(dataset_meta) {
 
 MergeDatasets <- function(dataset_meta, dataset_event, dataset_sample) {
   df = data.frame()
-  df = dataset_event %>% bind_rows(dataset_sample) %>% left_join(dataset_meta, by = "SessionID")
+  if(is.na(unique(dataset_meta$SessionID)) ){
+    dataset_meta = dataset_meta %>% mutate(SessionID = NULL) 
+    df = dataset_event %>% bind_rows(dataset_sample) %>% left_join(dataset_meta, by="filename")
+  }else {
+    
+    df = dataset_event %>% bind_rows(dataset_sample) %>% left_join(dataset_meta, by = "SessionID")
+  }
   return(df)
 }
