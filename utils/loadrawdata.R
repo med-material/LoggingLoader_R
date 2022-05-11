@@ -89,7 +89,7 @@ PreprocessMeta <- function(dataset_meta) {
 
 MergeDatasets <- function(dataset_meta, dataset_event, dataset_sample) {
   df = data.frame()
-  if(is.na(unique(dataset_meta$SessionID)) ){
+  if(length(na.omit(unique(dataset_meta$SessionID))) < 1){
     dataset_meta = dataset_meta %>% mutate(SessionID = NULL) 
     df = dataset_event %>% bind_rows(dataset_sample) %>% left_join(dataset_meta, by="filename")
   }else {
