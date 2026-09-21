@@ -31,4 +31,4 @@ LoggingLoader will now look for CSV files named `overviewdata` inside the folder
 
 ## What if I only have continuous data?
 
-LoggingLoader will soon support passing `NULL` to either Meta, Event or Sample arguments. Passing `NULL` means LoggingLoader will skip looking for the given dataset and still merge the rest as expected.
+LoggingLoader supports passing `NULL` to either Meta, Event or Sample arguments. Passing `NULL` means LoggingLoader will skip looking for the given dataset and still merge the rest as expected.
