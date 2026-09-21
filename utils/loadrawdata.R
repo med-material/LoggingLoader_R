@@ -59,7 +59,6 @@ LoadFromDirectory <- function(dir, event = "Event", sample = "Sample", meta = "M
     mutate(file_contents = NULL) %>%
     mutate(fID = dirname(fID))
     
-
   df_meta <- PreprocessMeta(df_meta)
   } else{
     
@@ -80,15 +79,14 @@ LoadFromDirectory <- function(dir, event = "Event", sample = "Sample", meta = "M
 }
 
 PreprocessMeta <- function(dataset_meta) {
-  tryCatch({
-  dataset_meta <- dataset_meta %>%
-    rename(MetaTimestamp = Timestamp,
-           MetaEmail = Email,
-           MetaFramecount = Framecount)
-  }, error = function(e) {
-    print(as_tibble(dataset_meta), n = 10)
-    print(e)
-  })
+  
+  req_cols = c("Timestamp","Email","Framecount")
+  if(!FALSE %in% (req_cols %in% names(dataset_meta))) {
+    dataset_meta <- dataset_meta %>%
+      rename(MetaTimestamp = Timestamp,
+             MetaEmail = Email,
+             MetaFramecount = Framecount)
+  }
   return(dataset_meta)
 }
 
